@@ -1,0 +1,56 @@
+@using StokvelSync.Shared
+@inject HttpClient Http
+
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+        <h5 class="mb-0 fw-bold text-primary">Active Members (@members?.Count)</h5>
+        <button class="btn btn-sm btn-outline-secondary" @onclick="LoadMembers">Refresh List</button>
+    </div>
+    <div class="card-body p-0">
+        @if (members == null)
+        {
+            <div class="p-4 text-center"><div class="spinner-border text-primary"></div></div>
+        }
+        else
+        {
+            @foreach (var m in members)
+            {
+                <div class="p-3 border-bottom hover-bg d-flex flex-wrap align-items-center">
+                    <div class="col-12 col-md-4 mb-2 mb-md-0">
+                        <div class="fw-bold">@m.FullName</div>
+                        <div class="text-muted small">@m.Email</div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <a href="https://wa.me/@m.WhatsAppNumber" target="_blank" class="btn btn-sm btn-success rounded-pill px-3">
+                            <i class="bi bi-whatsapp me-1"></i> WhatsApp
+                        </a>
+                    </div>
+                    <div class="col-6 col-md-3 text-md-center">
+                        <span class="badge @(m.HasPaidCurrentMonth ? "bg-success" : "bg-danger") px-3">
+                            @(m.HasPaidCurrentMonth ? "Paid" : "Pending")
+                        </span>
+                        <div class="small text-muted mt-1">Shortfall: R@m.GetShortfall()</div>
+                    </div>
+                    <div class="col-12 col-md-2 text-end mt-2 mt-md-0">
+                        <button class="btn btn-sm btn-light border">Manage</button>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+<style>
+    .hover-bg:hover { background-color: #f8fafc; transition: 0.2s; }
+</style>
+
+@code {
+    private List<Member>? members;
+
+    protected override async Task OnInitializedAsync() => await LoadMembers();
+
+    private async Task LoadMembers()
+    {
+        members = await Http.GetFromJsonAsync<List<Member>>("GetMembers");
+    }
+}

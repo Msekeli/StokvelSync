@@ -1,0 +1,128 @@
+@page "/register"
+@using StokvelSync.Shared
+@inject HttpClient Http
+@inject NavigationManager Nav
+
+<div class="row justify-content-center g-0">
+    <div class="col-12 col-lg-5">
+        <div class="card border-0 shadow-sm rounded-4 mt-2">
+            <div class="card-body p-4">
+                <h4 class="fw-bold mb-4 text-center" style="color: var(--stokvel-dark);">Create Account</h4>
+
+                <EditForm Model="@newMember" OnValidSubmit="RegisterAccount">
+                    <DataAnnotationsValidator />
+
+                    @* Compact Inputs for Mobile *@
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">FULL NAME</label>
+                        <InputText @bind-Value="newMember.FullName" class="form-control" placeholder="Name & Surname" />
+                        <ValidationMessage For="@(() => newMember.FullName)" class="text-danger small" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">WHATSAPP NUMBER</label>
+                        <InputText @bind-Value="newMember.WhatsAppNumber" class="form-control" placeholder="081 234 5678" />
+                        <ValidationMessage For="@(() => newMember.WhatsAppNumber)" class="text-danger small" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">EMAIL ADDRESS</label>
+                        <InputText @bind-Value="newMember.Email" class="form-control" placeholder="name@email.com" />
+                        <ValidationMessage For="@(() => newMember.Email)" class="text-danger small" />
+                    </div>
+
+                    @* Column Selection with Thumb-Friendly Checkboxes *@
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold text-muted d-block mb-3">CHOOSE SAVINGS COLUMNS</label>
+                        <div class="row row-cols-2 g-2">
+                            @foreach (var tier in allTiers)
+                            {
+                                <div class="col">
+                                    <div class="tier-card @(newMember.SelectedTiers.Contains(tier) ? "active" : "")" 
+                                         @onclick="() => ToggleTier(tier)">
+                                        <div class="form-check m-0">
+                                            <input class="form-check-input d-none" type="checkbox" checked="@newMember.SelectedTiers.Contains(tier)">
+                                            <span class="fw-bold">R @tier</span>
+                                            @if(newMember.SelectedTiers.Contains(tier)) {
+                                                <i class="bi bi-check-circle-fill ms-2 text-primary"></i>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    @* Bottom Selection Summary *@
+                    @if (newMember.SelectedTiers.Any())
+                    {
+                        <div class="alert alert-primary border-0 rounded-3 mb-4 animate-in">
+                            <div class="small fw-bold text-uppercase mb-1">Your Selection Summary:</div>
+                            <div class="d-flex flex-wrap gap-1 mb-2">
+                                @foreach (var t in newMember.SelectedTiers)
+                                {
+                                    <span class="badge bg-primary">R @t</span>
+                                }
+                            </div>
+                            <div class="border-top pt-2 mt-2 d-flex justify-content-between">
+                                <span class="fw-bold">Monthly Target:</span>
+                                <span class="fw-bold fs-5">R @newMember.SelectedTiers.Sum()</span>
+                            </div>
+                        </div>
+                    }
+
+                    <button type="submit" class="btn btn-primary w-100 py-2 fw-bold rounded-pill shadow-sm" disabled="@isSubmitting">
+                        @if (isSubmitting) { <span class="spinner-border spinner-border-sm me-2"></span> }
+                        Complete Registration
+                    </button>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .tier-card {
+        background: #fff;
+        border: 2px solid #e9ecef;
+        padding: 12px;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: 0.2s;
+        text-align: center;
+    }
+    .tier-card.active {
+        border-color: #0d6efd;
+        background-color: #f0f7ff;
+    }
+    .animate-in { animation: fadeIn 0.3s ease; }
+    @@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+
+@code {
+    private Member newMember = new() { SelectedTiers = new() };
+    private bool isSubmitting = false;
+    private int[] allTiers = { 50, 60, 70, 80, 90, 100, 150, 200, 250, 300, 400, 500 };
+
+    private void ToggleTier(int tier)
+    {
+        if (newMember.SelectedTiers.Contains(tier))
+            newMember.SelectedTiers.Remove(tier);
+        else
+            newMember.SelectedTiers.Add(tier);
+    }
+
+    private async Task RegisterAccount()
+    {
+        isSubmitting = true;
+        try {
+            var response = await Http.PostAsJsonAsync("AddMember", newMember);
+            if (response.IsSuccessStatusCode) {
+                // Immediately navigate to their dashboard after success
+                Nav.NavigateTo($"/member/dashboard/{newMember.Email}");
+            }
+        } finally {
+            isSubmitting = false;
+        }
+    }
+}

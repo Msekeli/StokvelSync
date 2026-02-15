@@ -1,0 +1,57 @@
+﻿@inherits LayoutComponentBase
+
+<div class="bb-app">
+    <header class="bb-top-bar">
+        <div class="container d-flex align-items-center justify-content-between h-100">
+            @* Left spacer for mobile to help center logo *@
+            <div class="d-md-none flex-1"></div>
+
+            @* Centered Logo on Mobile, Left-aligned on Desktop *@
+            <a class="bb-logo mx-auto mx-md-0" href="/">
+                <i class="bi bi-shield-check text-primary me-2"></i>
+                <span>Stokvel<span class="text-primary">Sync</span></span>
+            </a>
+
+            @* Buttons: Hidden on Mobile, Small & Clean on Desktop *@
+            <div class="d-none d-md-flex align-items-center gap-2">
+                <NavLink class="btn btn-sm btn-outline-light border-0" href="register">Register</NavLink>
+                <NavLink class="btn btn-sm btn-primary px-3 shadow-sm" href="login">Login</NavLink>
+            </div>
+            
+            @* Right spacer for mobile *@
+            <div class="d-md-none flex-1"></div>
+        </div>
+    </header>
+
+    <main class="bb-main">
+        <div class="container">
+            @Body
+        </div>
+    </main>
+</div>
+
+<style>
+    .bb-top-bar {
+        background-color: #0d2137;
+        height: 60px;
+        position: sticky;
+        top: 0;
+        z-index: 1050;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .bb-logo {
+        color: white;
+        text-decoration: none;
+        font-weight: 800;
+        font-size: 1.25rem;
+        display: flex;
+        align-items: center;
+    }
+    .flex-1 { flex: 1; }
+    .bb-main { padding-top: 1.5rem; background-color: #f8fafc; min-height: calc(100vh - 60px); }
+
+    /* Mobile specific adjustments */
+    @@media (max-width: 768px) {
+        .bb-logo { font-size: 1.1rem; }
+    }
+</style>
