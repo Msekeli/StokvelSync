@@ -1,0 +1,25 @@
+<div class="tier-grid">
+    @foreach (var tier in AllTiers)
+    {
+        <div class="tier-item">
+            <input type="checkbox" class="btn-check" id="tier-@tier" 
+                   checked="@SelectedTiers.Contains(tier)"
+                   @onchange="(e) => OnToggle(tier, e)">
+            <label class="btn btn-outline-primary w-100 py-3" for="tier-@tier">R @tier</label>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public List<int> SelectedTiers { get; set; } = new();
+    [Parameter] public EventCallback<List<int>> SelectedTiersChanged { get; set; }
+
+    private int[] AllTiers = { 50, 60, 70, 80, 90, 100, 150, 200, 250, 300, 400, 500 };
+
+    private async Task OnToggle(int tier, ChangeEventArgs e)
+    {
+        if ((bool)e.Value!) { if (!SelectedTiers.Contains(tier)) SelectedTiers.Add(tier); }
+        else { SelectedTiers.Remove(tier); }
+        await SelectedTiersChanged.InvokeAsync(SelectedTiers);
+    }
+}

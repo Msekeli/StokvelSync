@@ -1,0 +1,7 @@
+<span class="badge rounded-pill status-badge @(IsPaid ? "bg-success-subtle text-success" : "bg-danger-subtle text-danger")">
+    @(IsPaid ? "Paid" : "Pending")
+</span>
+
+@code {
+    [Parameter] public bool IsPaid { get; set; }
+}

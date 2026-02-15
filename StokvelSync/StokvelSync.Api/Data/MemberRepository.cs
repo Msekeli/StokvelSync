@@ -1,102 +1,87 @@
-using Azure;
 using Azure.Data.Tables;
-using StokvelSync.Shared;
+using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
+using System.Linq;
+using StokvelSync.Shared;
 
 namespace StokvelSync.Api.Data;
 
 public class MemberRepository
 {
-    private readonly TableClient _tableClient;
-    private const string TableName = "Members";
-    private const string PartitionKey = "StokvelGroup";
+    private readonly TableClient _memberTable;
 
-    public MemberRepository(TableServiceClient serviceClient)
+    public MemberRepository(TableServiceClient tableService)
     {
-        // Initializes the table client and ensures the table exists in Azure/Azurite
-        _tableClient = serviceClient.GetTableClient(TableName);
-        _tableClient.CreateIfNotExists();
+        // Initializes the connection to the 'Members' table in Azure Table Storage
+        _memberTable = tableService.GetTableClient("Members");
+        _memberTable.CreateIfNotExists();
     }
 
     /// <summary>
-    /// Saves or updates a member's record in Azure Table Storage.
-    /// Maps the SelectedTiers list to a string for storage.
+    /// Retrieves a single member by their email address.
+    /// Fixes 'GetMemberByEmailAsync' error in MemberFunctions.cs.
     /// </summary>
-  public async Task UpsertMemberAsync(Member member)
-{
-    var entity = new TableEntity("StokvelGroup", member.Email)
+    public async Task<MemberEntity?> GetMemberByEmailAsync(string email)
     {
-        { "FullName", member.FullName },
-        { "WhatsAppNumber", member.WhatsAppNumber },
-        { "SelectedTiers", string.Join(",", member.SelectedTiers) },
-        { "TotalContribution", (double)member.TotalContribution },
-        { "PenaltyBalance", (double)member.PenaltyBalance },
-        { "HasPaidCurrentMonth", member.HasPaidCurrentMonth }
-    };
-
-    await _tableClient.UpsertEntityAsync(entity, TableUpdateMode.Replace);
-}
-
-// Ensure the GetAllMembersAsync also maps these back:
-// ... inside the loop ...
-// FullName = entity.GetString("FullName") ?? "",
-// WhatsAppNumber = entity.GetString("WhatsAppNumber") ?? "",
+        try 
+        {
+            // Uses 'StokvelMember' as the PartitionKey for consistent data organization
+            var response = await _memberTable.GetEntityAsync<MemberEntity>("StokvelMember", email);
+            return response.Value;
+        }
+        catch 
+        { 
+            // Returns null if the member is not found, allowing the Function to return a 404
+            return null; 
+        }
+    }
 
     /// <summary>
-    /// Retrieves all members from the table and converts them back to the Shared Member model.
+    /// Retrieves all registered members in the group.
+    /// Fixes 'GetAllMembersAsync' error in MemberFunctions.cs.
     /// </summary>
-    public async Task<List<Member>> GetAllMembersAsync()
+    public async Task<List<MemberEntity>> GetAllMembersAsync()
     {
-        var members = new List<Member>();
+        var members = new List<MemberEntity>();
         
-        // Querying all entities within our specific partition
-        AsyncPageable<TableEntity> queryResults = _tableClient.QueryAsync<TableEntity>(ent => ent.PartitionKey == PartitionKey);
-
+        // Queries all entities under the 'StokvelMember' partition
+        var queryResults = _memberTable.QueryAsync<MemberEntity>(filter: $"PartitionKey eq 'StokvelMember'");
+        
         await foreach (var entity in queryResults)
         {
-            members.Add(new Member
-            {
-                Email = entity.RowKey, // The Email is our RowKey (Unique Identifier)
-                TotalContribution = (decimal)(entity.GetDouble("TotalContribution") ?? 0),
-                PenaltyBalance = (decimal)(entity.GetDouble("PenaltyBalance") ?? 0),
-                HasPaidCurrentMonth = entity.GetBoolean("HasPaidCurrentMonth") ?? false,
-                SelectedTiers = entity.GetString("SelectedTiers")?
-                    .Split(',', System.StringSplitOptions.RemoveEmptyEntries)
-                    .Select(int.Parse)
-                    .ToList() ?? new List<int>()
-            });
+            members.Add(entity);
         }
-
+        
         return members;
     }
 
     /// <summary>
-    /// Retrieves a single member by their email address for login/lookup purposes.
+    /// Saves or updates a member's profile information.
+    /// Fixes 'UpsertMemberAsync' error in MemberFunctions.cs.
     /// </summary>
-    public async Task<Member?> GetMemberByEmailAsync(string email)
+public async Task UpsertMemberAsync(Member member)
     {
-        try
+        // We map the Shared Member model to the Data Entity for Table Storage
+        var entity = new MemberEntity
         {
-            var response = await _tableClient.GetEntityAsync<TableEntity>(PartitionKey, email);
-            var entity = response.Value;
+            PartitionKey = "StokvelMember",
+            RowKey = member.Email,
+            FullName = member.FullName ?? string.Empty,
+            WhatsAppNumber = member.WhatsAppNumber ?? string.Empty,
+            
+            // FIX: Changed member.ActiveTiers to member.SelectedTiers
+            ActiveTiers = member.SelectedTiers != null 
+                ? string.Join(",", member.SelectedTiers) 
+                : string.Empty,
+            
+            // Explicitly cast decimal to double for Azure Table Storage compatibility
+            TotalContribution = (double)member.TotalContribution,
+            PenaltyBalance = (double)member.PenaltyBalance,
+            
+            IsAdmin = false 
+        };
 
-            return new Member
-            {
-                Email = entity.RowKey,
-                TotalContribution = (decimal)(entity.GetDouble("TotalContribution") ?? 0),
-                PenaltyBalance = (decimal)(entity.GetDouble("PenaltyBalance") ?? 0),
-                HasPaidCurrentMonth = entity.GetBoolean("HasPaidCurrentMonth") ?? false,
-                SelectedTiers = entity.GetString("SelectedTiers")?
-                    .Split(',', System.StringSplitOptions.RemoveEmptyEntries)
-                    .Select(int.Parse)
-                    .ToList() ?? new List<int>()
-            };
-        }
-        catch (RequestFailedException ex) when (ex.Status == 404)
-        {
-            return null; // Return null if member doesn't exist
-        }
+        await _memberTable.UpsertEntityAsync(entity);
     }
 }

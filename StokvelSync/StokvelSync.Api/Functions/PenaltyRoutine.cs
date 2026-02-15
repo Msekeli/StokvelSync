@@ -1,50 +1,48 @@
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
+using Azure.Data.Tables;
 using StokvelSync.Api.Data;
-using StokvelSync.Api.Services;
-using StokvelSync.Shared;
 
 namespace StokvelSync.Api.Functions;
 
 public class PenaltyRoutine
 {
-    private readonly MemberRepository _repository;
-    private readonly PenaltyService _penaltyService;
+    private readonly ILogger _logger;
+    private readonly TableClient _memberTable;
+    private readonly TableClient _paymentTable;
 
-    public PenaltyRoutine(MemberRepository repository, PenaltyService penaltyService)
+    public PenaltyRoutine(ILoggerFactory loggerFactory, TableServiceClient tableService)
     {
-        _repository = repository;
-        _penaltyService = penaltyService;
+        _logger = loggerFactory.CreateLogger<PenaltyRoutine>();
+        _memberTable = tableService.GetTableClient("Members");
+        _paymentTable = tableService.GetTableClient("Payments");
     }
 
-    /// <summary>
-    /// Business Rule: R50 fine applied if no contribution by the 7th.
-    /// Cron Expression: 0 0 0 8 * * (Runs at midnight on the 8th of every month)
-    /// </summary>
-  [Function("ApplyPenalties")]
-public async Task Run([TimerTrigger("0 0 0 1 * *")] TimerInfo myTimer, FunctionContext context)
-{
-    var logger = context.GetLogger("PenaltyRoutine");
-    var members = await _repository.GetAllMembersAsync();
-
-    foreach (var member in members)
+    [Function("PenaltyRoutine")]
+    public async Task Run([TimerTrigger("0 0 0 8 * *")] TimerInfo myTimer)
     {
-        // 1. Check for Missed Month (Total lack of payment)
-        if (!member.HasPaidCurrentMonth && member.TotalContribution == 0)
-        {
-            member.PenaltyBalance += 100; // Missed month penalty
-            logger.LogInformation($"R100 Penalty: {member.Email} missed the month.");
-        }
-        // 2. Check for Late Payment (Paid after 7th but before end of month)
-        else if (!member.HasPaidCurrentMonth)
-        {
-            member.PenaltyBalance += 50; // Late fee
-            logger.LogInformation($"R50 Penalty: {member.Email} was late.");
-        }
+        var members = _memberTable.Query<MemberEntity>();
+        int currentMonth = DateTime.UtcNow.Month;
 
-        // Reset payment status for the new month
-        member.HasPaidCurrentMonth = false;
-        await _repository.UpsertMemberAsync(member);
+        foreach (var member in members)
+        {
+            // Logic: Tiers are stored as "50,100"
+            var tiers = member.ActiveTiers.Split(',', StringSplitOptions.RemoveEmptyEntries);
+            
+            foreach (var tier in tiers)
+            {
+                string rowKey = $"{tier}_{currentMonth:D2}";
+                var payment = _paymentTable.Query<PaymentEntity>(p => 
+                    p.PartitionKey == member.RowKey && p.RowKey == rowKey).FirstOrDefault();
+
+                // Logic: Apply R50 late penalty if not "Approved" or "Pending" by the 8th
+                if (payment == null || (payment.Status != "Approved" && payment.Status != "Pending"))
+                {
+                    member.PenaltyBalance += 50;
+                    _logger.LogInformation($"Penalty of R50 applied to {member.RowKey} for tier {tier}");
+                }
+            }
+            await _memberTable.UpdateEntityAsync(member, member.ETag);
+        }
     }
-}
 }

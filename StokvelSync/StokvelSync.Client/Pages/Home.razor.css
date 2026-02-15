@@ -1,0 +1,83 @@
+.stat-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 20px;
+  height: 100%;
+}
+
+.stat-card .label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 0.5rem;
+}
+
+.stat-card .value {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #1e3a8a;
+}
+
+.main-balance {
+  border-top: 6px solid #1e3a8a;
+}
+
+.penalty-card {
+  border-top: 6px solid #ef4444;
+}
+
+.tier-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.tier-chip {
+  background: #f1f5f9;
+  padding: 10px 20px;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 80px;
+}
+
+.tier-label {
+  font-size: 0.6rem;
+  font-weight: bold;
+  color: #1e3a8a;
+}
+.tier-amount {
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.animate-in {
+  animation: fadeIn 0.4s ease-in;
+}
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.card {
+  transition: transform 0.2s ease-in-out;
+  background: linear-gradient(145deg, #ffffff, #f0f4f8);
+}
+
+.card:hover {
+  transform: translateY(-5px);
+}
+
+.btn-primary {
+  background-color: #0052cc;
+  border: none;
+}

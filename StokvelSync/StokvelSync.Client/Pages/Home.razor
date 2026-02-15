@@ -1,0 +1,56 @@
+@page "/dashboard"
+@using StokvelSync.Shared
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold">My Contributions</h2>
+        <div class="text-end">
+            <span class="badge bg-primary p-2">Total Due: R @member?.GetExpectedTotal()</span>
+        </div>
+    </div>
+
+    @if (member != null)
+    {
+        <div class="row g-3">
+            @foreach (var tier in member.SelectedTiers)
+            {
+                var currentMonth = DateTime.Now.Month;
+                var amountDue = tier * currentMonth; // Arithmetic Progression: Base * Month
+
+                <div class="col-md-6 col-lg-4">
+                    <div class="card shadow-sm border-0 rounded-4">
+                        <div class="card-body p-4">
+                            <h5 class="text-muted small text-uppercase">R @tier Column</h5>
+                            <h3 class="fw-bold">R @amountDue</h3>
+                            <p class="small text-secondary">Target for @DateTime.Now.ToString("MMMM")</p>
+                            
+                            <button class="btn btn-primary w-100 rounded-pill mt-2" 
+                                    @onclick="() => NavigateToUpload(tier)">
+                                <i class="bi bi-camera me-2"></i>Pay & Upload
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private Member? member;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // For testing, we fetch the member based on the logged-in email
+        // This hits your [GET] http://localhost:7071/api/GetMembers endpoint
+        var members = await Http.GetFromJsonAsync<List<Member>>("api/GetMembers");
+        member = members?.FirstOrDefault(m => m.Email == "your-email@example.com"); 
+    }
+
+    private void NavigateToUpload(int tier)
+    {
+        Navigation.NavigateTo($"/upload/{tier}");
+    }
+}

@@ -1,0 +1,29 @@
+@page "/admin/dashboard"
+@using StokvelSync.Shared
+@using StokvelSync.Client.Components
+@inject HttpClient Http
+
+<div class="container-fluid py-4">
+    <h2 class="fw-bold mb-4 text-primary">Admin Control Center</h2>
+    <div class="admin-list">
+        @foreach (var m in members ?? new())
+        {
+            <div class="admin-row">
+                <div class="info">
+                    <strong>@m.Email</strong>
+                    <div class="small">WhatsApp: @m.WhatsAppNumber</div>
+                </div>
+                <StatusBadge IsPaid="@m.HasPaidCurrentMonth" />
+                <div class="actions">
+                    <button class="btn btn-sm btn-light">Manage</button>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private List<Member>? members;
+    protected override async Task OnInitializedAsync() => 
+        members = await Http.GetFromJsonAsync<List<Member>>("GetMembers");
+}

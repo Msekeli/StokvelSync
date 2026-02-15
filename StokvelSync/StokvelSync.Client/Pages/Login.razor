@@ -1,75 +1,25 @@
 @page "/login"
+@inject StokvelSync.Client.Services.UserSession Session
 @inject NavigationManager Nav
-@inject HttpClient Http
 
-<div class="auth-wrapper">
-    <div class="container d-flex justify-content-center align-items-center min-vh-100">
-        <div class="auth-card shadow-lg border-0 rounded-4 col-12 col-md-5 col-lg-4">
-            <div class="card-body p-5">
-                <div class="text-center mb-5">
-                    <div class="auth-logo-circle shadow-sm mb-3 mx-auto">
-                        <i class="bi bi-key-fill text-primary"></i>
-                    </div>
-                    <h2 class="fw-bold text-dark">Welcome Back</h2>
-                    <p class="text-muted">Enter your email to continue</p>
-                </div>
+@* UI with your Blue Family styling goes here *@
 
-                <div class="form-floating mb-4">
-                    <input type="email" class="form-control custom-input shadow-sm" id="loginEmail" placeholder="name@example.com" />
-                    <label for="loginEmail">Email Address</label>
-                </div>
-
-                <button class="btn btn-primary btn-lg w-100 rounded-pill shadow fw-bold py-3 mb-4">
-                    Sign In
-                </button>
-
-                <div class="text-center">
-                    <a href="/register" class="text-decoration-none small text-muted">
-                        New here? <span class="text-primary fw-bold">Create an account</span>
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
+<div class="login-card">
+    <h3 class="fw-bold">Member Login</h3>
+    <input type="email" @bind="emailInput" class="form-control mb-3" placeholder="Enter your email" />
+    <button class="btn-primary-custom w-100" @onclick="HandleLogin">Sign In</button>
 </div>
 
 @code {
-    private string loginEmail = "";
-    private string errorMessage = "";
-    private bool isLoggingIn = false;
+    private string emailInput = "";
 
-    private async Task HandleLogin()
+    private void HandleLogin()
     {
-        if (string.IsNullOrWhiteSpace(loginEmail)) return;
-        isLoggingIn = true;
-        errorMessage = "";
-
-        try
+        if (!string.IsNullOrWhiteSpace(emailInput))
         {
-            var response = await Http.PostAsJsonAsync("Login", new { Email = loginEmail });
-            
-            if (response.IsSuccessStatusCode)
-            {
-                // Logic: If admin email, go to admin dashboard, else go to member dashboard
-                // For now, let's assume 'admin@stokvel.com' is your admin account
-                if (loginEmail.ToLower() == "admin@stokvel.com") {
-                    Nav.NavigateTo("/admin/portal");
-                } else {
-                    Nav.NavigateTo("/member/dashboard");
-                }
-            }
-            else
-            {
-                errorMessage = "Login failed. Please check your email or register.";
-            }
-        }
-        catch (Exception)
-        {
-            errorMessage = "Server error. Is the API running?";
-        }
-        finally
-        {
-            isLoggingIn = false;
+            // Set the session for this specific visit
+            Session.Email = emailInput;
+            Nav.NavigateTo("/dashboard");
         }
     }
 }

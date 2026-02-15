@@ -1,0 +1,17 @@
+<div class="member-card shadow-sm p-3 mb-3 rounded-3 border-start border-4 @(Member.HasPaidCurrentMonth ? "border-success" : "border-danger")">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <div class="fw-bold">@Member.Email</div>
+            <div class="small text-muted">Columns: @string.Join(", ", Member.SelectedTiers)</div>
+        </div>
+        <StatusBadge IsPaid="@Member.HasPaidCurrentMonth" />
+    </div>
+    <div class="mt-2 pt-2 border-top d-flex justify-content-between small">
+        <span>Target: R @Member.GetExpectedTotal()</span>
+        <span class="fw-bold text-primary">Saved: R @Member.TotalContribution</span>
+    </div>
+</div>
+
+@code {
+    [Parameter] public Member Member { get; set; } = new();
+}

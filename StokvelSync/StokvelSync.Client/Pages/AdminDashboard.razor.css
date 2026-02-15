@@ -1,0 +1,11 @@
+.admin-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: white;
+  padding: 1rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+.admin-row:hover {
+  background-color: #f8fafc;
+}

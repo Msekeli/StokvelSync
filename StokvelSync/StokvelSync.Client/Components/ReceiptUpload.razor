@@ -1,0 +1,20 @@
+<div class="upload-container shadow-sm p-4 rounded-4">
+    <h6 class="fw-bold"><i class="bi bi-camera me-2"></i>Upload Receipt</h6>
+    <InputFile OnChange="HandleUpload" class="form-control" accept="image/*" />
+    
+    @if (isUploading)
+    {
+        <div class="mt-2 text-primary small"><span class="spinner-border spinner-border-sm"></span> Processing...</div>
+    }
+</div>
+
+@code {
+    private bool isUploading = false;
+    private async Task HandleUpload(InputFileChangeEventArgs e)
+    {
+        isUploading = true;
+        // Logic for Azure Blob Storage upload goes here
+        await Task.Delay(1000); 
+        isUploading = false;
+    }
+}

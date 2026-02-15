@@ -1,58 +1,69 @@
-﻿@page "/"
+@page "/landing"
 @inject NavigationManager Nav
 
-<div class="landing-content">
-    @* Hero Section *@
-    <section class="text-center py-5 mb-5 rounded-4 shadow-sm text-white" 
-             style="background: linear-gradient(rgba(13, 33, 55, 0.8), rgba(13, 33, 55, 0.8)), url('https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&q=80&w=1200'); background-size: cover; background-position: center;">
-        <div class="py-5">
-            <h1 class="display-4 fw-bold">Smart Savings, Stronger Together</h1>
-            <p class="lead mb-4">Manage your Stokvel contributions with automated tracking and discipline.</p>
-            <div class="d-flex justify-content-center gap-3">
-                <button class="btn btn-primary btn-lg px-5 shadow" @onclick='() => Nav.NavigateTo("/register")'>Join Group</button>
+<div class="landing-wrapper">
+    @* Section 1: Hero *@
+    <header class="hero">
+        <div class="container text-center">
+            <h1 class="display-3 fw-bold mb-3">StokvelSync</h1>
+            <p class="fs-4 mb-5">Empowering your financial future through collective discipline.</p>
+            <button class="cta-button" @onclick='() => Nav.NavigateTo("/register")'>Join Our Group Now</button>
+        </div>
+    </header>
+
+    @* Section 2: The Value Prop *@
+    <section class="info-section">
+        <div class="container text-center">
+            <h2 class="section-title">Why Join StokvelSync?</h2>
+            <p class="section-subtitle">We combine the tradition of South African Stokvels with modern technology to ensure your money is safe and your goals are reached.</p>
+        </div>
+    </section>
+
+    @* Section 3: Growth (The Tiers) *@
+    <section class="growth-section bg-light">
+        <div class="container">
+            <h2 class="text-center mb-5">Choose Your Growth Path</h2>
+            <div class="tier-cloud">
+                @foreach (var tier in new int[] { 50, 60, 70, 80, 90, 100, 150, 200, 250, 300, 400, 500 })
+                {
+                    <div class="tier-bubble">R @tier</div>
+                }
+            </div>
+            <p class="text-center mt-4 text-muted">Pick 2 or more columns. The more you save, the faster we grow together.</p>
+        </div>
+    </section>
+
+    @* Section 4: Discipline (Penalties) *@
+    <section class="discipline-section">
+        <div class="container">
+            <h2 class="text-center mb-5">Rules for Success</h2>
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <div class="penalty-box late">
+                        <h3>Late Payment (After 7th)</h3>
+                        <p>Consistency is key. Late contributions disrupt the flow.</p>
+                        <div class="amount">R 50.00</div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="penalty-box missed">
+                        <h3>Missed Month</h3>
+                        <p>A missed month is a missed opportunity for the group.</p>
+                        <div class="amount">R 100.00</div>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
 
-    @* Penalty & Rules Section *@
-    <div class="row g-4 mb-5">
-        <div class="col-md-6">
-            <div class="card h-100 border-0 shadow-sm border-start border-warning border-5">
-                <div class="card-body p-4">
-                    <h4 class="fw-bold text-dark"><i class="bi bi-clock-history me-2"></i>Late Payment</h4>
-                    <p class="text-muted">Payments made after the <strong>7th</strong> of the month but before the month ends incur a penalty.</p>
-                    <h3 class="text-warning fw-bold">R 50.00</h3>
-                </div>
+    @* Section 5: Banking *@
+    <section class="bank-section text-white">
+        <div class="container text-center">
+            <h3 class="mb-4">Official Bank Account</h3>
+            <div class="bank-card mx-auto">
+                <h4>Standard Bank</h4>
+                <p class="account-num">10142013372</p>
             </div>
-        </div>
-        <div class="col-md-6">
-            <div class="card h-100 border-0 shadow-sm border-start border-danger border-5">
-                <div class="card-body p-4">
-                    <h4 class="fw-bold text-dark"><i class="bi bi-x-circle me-2"></i>Missed Month</h4>
-                    <p class="text-muted">Failure to make any contribution within the calendar month results in a heavy penalty.</p>
-                    <h3 class="text-danger fw-bold">R 100.00</h3>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    @* Savings Columns List *@
-    <section class="mb-5">
-        <div class="text-center mb-4">
-            <h3 class="fw-bold">Available Savings Tiers</h3>
-            <p class="text-muted">Pick your preferred columns upon registration.</p>
-        </div>
-        <div class="d-flex flex-wrap justify-content-center gap-2">
-            @foreach (var tier in new int[] { 50, 60, 70, 80, 90, 100, 150, 200, 250, 300, 400, 500 })
-            {
-                <span class="badge bg-white text-primary border border-primary p-3 fs-6">R @tier</span>
-            }
         </div>
     </section>
-
-    @* Banking Details *@
-    <div class="alert alert-light border shadow-sm text-center p-4">
-        <h5 class="fw-bold text-primary">Official Bank Account</h5>
-        <p class="mb-0 fs-5"><strong>STD BANK</strong> - 10142013372</p>
-    </div>
 </div>

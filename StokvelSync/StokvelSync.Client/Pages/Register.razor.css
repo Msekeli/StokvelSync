@@ -1,0 +1,36 @@
+.form-wrapper {
+  max-width: 550px;
+  background: white;
+  padding: 3rem;
+  border-radius: 30px;
+}
+
+.custom-input {
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.custom-input:focus {
+  border-color: #1e3a8a;
+  box-shadow: none;
+}
+
+.btn-primary-custom {
+  background-color: #1e3a8a;
+  color: white;
+  border: none;
+  border-radius: 15px;
+  font-weight: 700;
+  transition: 0.3s;
+}
+
+.btn-primary-custom:hover {
+  background-color: #0d2137;
+  transform: translateY(-2px);
+}
+
+.progress-bar {
+  background-color: #1e3a8a;
+  transition: width 0.4s ease;
+}
